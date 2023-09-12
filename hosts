@@ -1,6 +1,9 @@
 [linux]
-67.202.3.209
+54.242.59.249
+35.175.235.127
 
 [all:vars]
 ansible_ssh_user=nethanga
 ansible_ssh_pass=ukunVL@012
+ansible_become=yes
+ansible_become_pass='ukunVL@012'

@@ -19,7 +19,7 @@
           - "Hostname : {{ hostname }}"
           - "Date : {{ date }}"
 
-    - set_fact: OUTPUTFILE="/tmp/{{ item }}_service_status"
+    - set_fact: OUTPUTFILE="/tmp/output/{{ item }}_service_status"
       with_items: "{{ hostname }}"
 
     - name: Remove existing log file
@@ -48,7 +48,7 @@
       delegate_to: localhost
 
     - name: List of all services status
-      shell: echo "[INFO] {{ item }} is running. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      shell: echo "[ACTIVE] {{ item }} is running. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
       when:
         - ansible_facts.services[item].state == 'running'
       with_items: "{{ ansible_facts.services }}"
@@ -60,7 +60,7 @@
       delegate_to: localhost
 
     - name: List of all services status
-      shell: echo "[ERROR] {{ item }} is stopped. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      shell: echo "[INACTIVE] {{ item }} is stopped. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
       when:
         - ansible_facts.services[item].state == 'stopped'
       with_items: "{{ ansible_facts.services }}"
@@ -72,7 +72,7 @@
       delegate_to: localhost
 
     - name: List of all services status
-      shell: echo "[INFO] {{ item }} state is unknown. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      shell: echo "[UNKNOWN] {{ item }} state is unknown. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
       when:
         - ansible_facts.services[item].state == 'unknown'
       with_items: "{{ ansible_facts.services }}"
