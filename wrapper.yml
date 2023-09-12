@@ -1,0 +1,13 @@
+---
+- name: Role for Service Verification
+  hosts: linux
+  become: true
+  gather_facts: false
+  no_log: true
+
+  tasks:
+    - name: Import role for Service Verifications
+      import_role:
+        name: ansible-role-airtel-service-linux
+
+

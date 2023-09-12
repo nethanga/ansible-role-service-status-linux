@@ -1,0 +1,17 @@
+{% set s_no = 1 %}
+
+
+,  INSTALLED PACKAGES
+,  ===================
+{% for each in installed_packages.results %}
+{{s_no}},{{each.item}},{{each.stdout | to_nice_json}},{{now()}}
+{% set s_no = s_no + 1 %}
+{% endfor %}
+
+,  SERVICE LIST
+,  ============
+{% for each in service_list.results %}
+{{s_no}},{{each.item}},{{each.stdout_lines | to_nice_json}},{{now()}}
+{% set s_no = s_no + 1 %}
+{% endfor %}
+

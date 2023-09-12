@@ -1,0 +1,107 @@
+---
+# tasks file for ansible-role-airtel-service-linux
+- name: Generate validation Linux Servers
+  block:
+    - name: Check hostname status
+      shell: hostname
+      register: hostname_result
+
+    - name: Get date
+      shell: echo `date +%Y%m%d`
+      register: date
+
+    - name: Set hostname variable
+      set_fact:
+        hostname: "{{ hostname_result.stdout_lines[0] }}"
+        date: "{{ date.stdout_lines[0] }}"
+    - debug:
+        msg:
+          - "Hostname : {{ hostname }}"
+          - "Date : {{ date }}"
+
+    - set_fact: OUTPUTFILE="/tmp/{{ item }}_service_status"
+      with_items: "{{ hostname }}"
+
+    - name: Remove existing log file
+      file:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        state: absent
+      delegate_to: localhost
+
+    - lineinfile:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        line:  "*************************************Verification results are as follows:***************************"
+        create: yes
+      delegate_to: localhost
+
+    - debug: var=hostname
+
+################################## print All services status ################################################
+- name: All Service Facts
+  block:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+    
+    - lineinfile:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        line: "\n*************List of services running**************"
+      delegate_to: localhost
+
+    - name: List of all services status
+      shell: echo "[INFO] {{ item }} is running. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      when:
+        - ansible_facts.services[item].state == 'running'
+      with_items: "{{ ansible_facts.services }}"
+      delegate_to: localhost
+
+    - lineinfile:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        line: "\n*************List of services stopped**************"
+      delegate_to: localhost
+
+    - name: List of all services status
+      shell: echo "[ERROR] {{ item }} is stopped. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      when:
+        - ansible_facts.services[item].state == 'stopped'
+      with_items: "{{ ansible_facts.services }}"
+      delegate_to: localhost
+
+    - lineinfile:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        line: "\n*************List of services status unknown**************"
+      delegate_to: localhost
+
+    - name: List of all services status
+      shell: echo "[INFO] {{ item }} state is unknown. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      when:
+        - ansible_facts.services[item].state == 'unknown'
+      with_items: "{{ ansible_facts.services }}"
+      delegate_to: localhost        
+  when: check_services is not defined
+
+################################## print custom services status ################################################
+- name: Execute if services are listed
+  block:    
+    - name: "Check if services are running"
+      service:
+        name: "{{ item }}"
+      loop: "{{ check_services }}"
+      register: services_status
+
+    - lineinfile:
+        path: "{{ OUTPUTFILE }}_{{ date }}.log"
+        line: "\n*************Checking custom services status**************"
+      delegate_to: localhost
+
+    - name: List of services that are running
+      shell: echo "[INFO] {{ item.name }} is running. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      when: item.status.ActiveState=="active"
+      loop: "{{ services_status.results }}"
+      delegate_to: localhost
+
+    - name: List of services that are not running
+      shell: echo "[ERROR] {{ item.name }} is not running. " >> "{{ OUTPUTFILE }}_{{ date }}.log"
+      when: item.status.ActiveState=="inactive" or item.status.ActiveState=="failed"
+      loop: "{{ services_status.results }}"
+      delegate_to: localhost
+  when: check_services is defined

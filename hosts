@@ -1,0 +1,6 @@
+[linux]
+67.202.3.209
+
+[all:vars]
+ansible_ssh_user=nethanga
+ansible_ssh_pass=ukunVL@012

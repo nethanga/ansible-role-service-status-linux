@@ -1,0 +1,11 @@
+---
+# defaults file for ansible-role-airtel-service-linux
+
+#    Variables for Services
+check_services:
+  - postfix.service
+  - snmpd.service
+  - vsftpd.service
+  - irqbalance.service
+  - dovecot.service
+
